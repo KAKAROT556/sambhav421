@@ -1,192 +1,238 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>System Access</title>
+<title>System Diagnostics</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
-    height: 100%;
+    margin: 0;
+    padding: 0;
     background: #000;
     overflow: hidden;
-    font-family: 'Courier New', monospace;
-  }
-  body {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-
-  canvas#matrix {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 0;
-    opacity: 0.5;
+    height: 100%;
+    width: 100%;
+    font-family: "Courier New", Consolas, monospace;
   }
 
   #terminal {
-    position: relative;
-    z-index: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    max-width: 460px;
-    color: #0f0;
-    text-shadow: 0 0 6px #0f0;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 24px;
+    color: #33ff66;
+    font-size: 15px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    background: #000;
+    z-index: 2;
+    text-shadow: 0 0 4px rgba(51,255,102,0.5);
   }
-  #terminal .line { font-size: 15px; margin-bottom: 8px; min-height: 20px; white-space: pre-wrap; line-height: 1.4; }
-  #terminal .cursor { display: inline-block; width: 8px; background: #0f0; animation: blink 0.8s infinite; }
-  @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
 
-  body.shake { animation: shake 0.4s infinite; }
-  @keyframes shake {
-    0% { transform: translate(0,0); }
-    25% { transform: translate(-4px, 3px); }
-    50% { transform: translate(4px, -3px); }
-    75% { transform: translate(-3px, -4px); }
-    100% { transform: translate(3px, 4px); }
+  #cursor {
+    display: inline-block;
+    background: #33ff66;
+    width: 8px;
+    height: 14px;
+    animation: blink 1s steps(1) infinite;
+    vertical-align: middle;
   }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    50.01%, 100% { opacity: 0; }
+  }
+
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 3s ease-in;
+  }
+
+  #skip {
+    position: absolute;
+    bottom: 12px;
+    right: 16px;
+    z-index: 5;
+    color: #114422;
+    font-family: monospace;
+    font-size: 11px;
+    background: transparent;
+    border: 1px solid #114422;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+  #skip:hover { color: #33ff66; border-color: #33ff66; }
 
   #reveal {
-    display: none;
-    position: relative;
-    z-index: 2;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    max-width: 460px;
-    text-align: center;
-    color: #fff;
-  }
-  #reveal.show { display: block; }
-  body.reveal-mode {
-    background: linear-gradient(135deg, #ff6ec4, #7873f5, #4facfe);
-    background-size: 200% 200%;
-    animation: gradientMove 3s ease infinite;
-  }
-  @keyframes gradientMove {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  .emoji { font-size: 64px; margin-bottom: 10px; }
-  #reveal h1 { font-size: 34px; margin-bottom: 12px; text-shadow: none; }
-  #reveal p { font-size: 17px; line-height: 1.6; }
-
-  .confetti {
-    position: fixed;
-    top: -10px;
-    width: 8px; height: 14px;
+    height: 100%;
     z-index: 3;
-    opacity: 0.9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.2s ease-in;
+    font-family: "Courier New", Consolas, monospace;
   }
-  @keyframes fall {
-    to { transform: translateY(110vh) rotate(360deg); }
+  #reveal.show { opacity: 1; }
+  #reveal h1 {
+    color: #33ff66;
+    font-size: 54px;
+    letter-spacing: 6px;
+    margin: 0 0 14px 0;
+    text-shadow: 0 0 14px rgba(51,255,102,0.85), 0 0 32px rgba(51,255,102,0.5);
+  }
+  #reveal p {
+    color: #8fffb0;
+    font-size: 16px;
+    margin: 0;
+    opacity: 0.85;
   }
 </style>
 </head>
-<body id="body">
+<body>
 
+<div id="terminal"></div>
 <canvas id="matrix"></canvas>
-
-<div id="terminal">
-  <div class="line" id="l1"></div>
-  <div class="line" id="l2"></div>
-  <div class="line" id="l3"></div>
-  <div class="line" id="l4"></div>
-  <div class="line" id="l5"></div>
-  <div class="line" id="l6"></div>
-</div>
-
 <div id="reveal">
-  <div class="emoji">🎉</div>
-  <h1>Gotcha!</h1>
-  <p>Nothing was hacked.<br>You just got pranked 😂</p>
+  <h1>RELAX. IT'S JUST A PRANK.</h1>
+  <p>no system was harmed &mdash; nice reflexes though</p>
 </div>
+<button id="skip" onclick="skipToMatrix()">skip intro</button>
 
 <script>
-  // Matrix rain
+const lines = [
+  "root@core-relay:~# initiating secure session...",
+  "connecting to 10.42.117.8:8022 ... OK",
+  "authenticating handshake [RSA-4096] ... verified",
+  "",
+  "loading kernel modules:",
+  "  [ok] net_filter",
+  "  [ok] io_scheduler",
+  "  [ok] crypto_engine",
+  "  [ok] proc_monitor",
+  "",
+  "mounting remote filesystem /mnt/remote_fs ... done",
+  "scanning open ports on subnet 10.42.117.0/24 ...",
+  "  10.42.117.3   22/tcp   open   ssh",
+  "  10.42.117.9   443/tcp  open   https",
+  "  10.42.117.14  3306/tcp open   mysql",
+  "",
+  "bypassing firewall ruleset ... 3 rules disabled",
+  "injecting payload into buffer 0x7F3A2C ... done",
+  "escalating privileges ... root access granted",
+  "",
+  "decrypting archive vault_002.enc ...",
+  "  [##########----------] 48%",
+  "  [####################] 100%",
+  "",
+  "access granted.",
+  "launching matrix protocol",
+];
+
+const term = document.getElementById('terminal');
+let lineIndex = 0;
+let charIndex = 0;
+let buffer = "";
+
+function typeNextChar() {
+  if (lineIndex >= lines.length) {
+    setTimeout(startMatrix, 700);
+    return;
+  }
+  const current = lines[lineIndex];
+  if (charIndex < current.length) {
+    buffer += current[charIndex];
+    charIndex++;
+    term.innerHTML = buffer + '<span id="cursor"></span>';
+    setTimeout(typeNextChar, 12 + Math.random() * 18);
+  } else {
+    buffer += "\n";
+    lineIndex++;
+    charIndex = 0;
+    term.innerHTML = buffer + '<span id="cursor"></span>';
+    const pause = current === "" ? 80 : 90 + Math.random() * 160;
+    setTimeout(typeNextChar, pause);
+  }
+}
+
+let matrixStarted = false;
+function skipToMatrix() {
+  if (matrixStarted) return;
+  startMatrix();
+}
+
+function startMatrix() {
+  if (matrixStarted) return;
+  matrixStarted = true;
+  document.getElementById('skip').style.display = 'none';
+
   const canvas = document.getElementById('matrix');
+  canvas.style.opacity = '1';
+  term.style.transition = 'opacity 1.5s ease-out';
+  term.style.opacity = '0';
+
   const ctx = canvas.getContext('2d');
-  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
   resize();
   window.addEventListener('resize', resize);
-  const chars = "アイウエオカキクケコサシスセソ01234567890$#@%&";
+
+  const chars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789";
   const fontSize = 16;
-  let columns, drops;
-  function setupDrops() {
-    columns = Math.floor(canvas.width / fontSize);
-    drops = Array(columns).fill(1);
-  }
-  setupDrops();
-  function drawMatrix() {
-    ctx.fillStyle = "rgba(0,0,0,0.08)";
+  let columns = Math.floor(canvas.width / fontSize);
+  let drops = new Array(columns).fill(1);
+
+  function draw() {
+    ctx.fillStyle = "rgba(0,0,0,0.05)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#0f0";
+
+    ctx.fillStyle = "#33ff66";
     ctx.font = fontSize + "px monospace";
+
     for (let i = 0; i < drops.length; i++) {
       const text = chars[Math.floor(Math.random() * chars.length)];
       ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+        drops[i] = 0;
+      }
       drops[i]++;
     }
   }
-  const matrixInterval = setInterval(drawMatrix, 40);
 
-  // Typing terminal lines
-  const lines = [
-    { el: document.getElementById('l1'), text: "> connection established: 192.168.4.1" },
-    { el: document.getElementById('l2'), text: "> bypassing security... [OK]" },
-    { el: document.getElementById('l3'), text: "> scanning /photos /contacts /messages" },
-    { el: document.getElementById('l4'), text: "> extracting data... 87% complete" },
-    { el: document.getElementById('l5'), text: "> uploading to remote server..." },
-    { el: document.getElementById('l6'), text: "> ...relax, just kidding! 😂" }
-  ];
+  const rainInterval = setInterval(draw, 45);
 
-  let lineIndex = 0;
-  function typeLine() {
-    if (lineIndex >= lines.length) {
-      setTimeout(finish, 300);
-      return;
-    }
-    const { el, text } = lines[lineIndex];
-    let i = 0;
-    el.innerHTML = '';
-    const type = setInterval(() => {
-      el.textContent = text.slice(0, i) + ' ';
-      i++;
-      if (i > text.length) {
-        clearInterval(type);
-        lineIndex++;
-        if (lineIndex === 5) document.body.classList.add('shake');
-        setTimeout(typeLine, 150);
-      }
-    }, 12);
-  }
-  setTimeout(typeLine, 200);
+  window.addEventListener('resize', () => {
+    columns = Math.floor(canvas.width / fontSize);
+    drops = new Array(columns).fill(1);
+  });
 
-  function finish() {
-    document.body.classList.remove('shake');
-    clearInterval(matrixInterval);
-    document.getElementById('terminal').style.display = 'none';
-    document.getElementById('reveal').classList.add('show');
-    document.body.classList.add('reveal-mode');
-    launchConfetti();
-  }
+  // let the rain run for a while, then land the reveal
+  setTimeout(() => {
+    const reveal = document.getElementById('reveal');
+    reveal.classList.add('show');
+    canvas.style.transition = 'opacity 2.5s ease-out';
+    canvas.style.opacity = '0.15';
+  }, 8000);
+}
 
-  function launchConfetti() {
-    const colors = ['#ff6ec4', '#7873f5', '#4facfe', '#ffd166', '#06d6a0'];
-    for (let i = 0; i < 60; i++) {
-      const c = document.createElement('div');
-      c.className = 'confetti';
-      c.style.left = Math.random() * 100 + 'vw';
-      c.style.background = colors[Math.floor(Math.random() * colors.length)];
-      c.style.animation = `fall ${2 + Math.random() * 2}s linear forwards`;
-      c.style.animationDelay = (Math.random() * 0.6) + 's';
-      document.body.appendChild(c);
-      setTimeout(() => c.remove(), 4500);
-    }
-  }
+setTimeout(typeNextChar, 400);
 </script>
 
 </body>
