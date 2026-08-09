@@ -1,239 +1,230 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>System Diagnostics</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080a13">
+<title>LYRA — Personal OS</title>
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: #000;
-    overflow: hidden;
-    height: 100%;
-    width: 100%;
-    font-family: "Courier New", Consolas, monospace;
-  }
-
-  #terminal {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    padding: 24px;
-    color: #33ff66;
-    font-size: 15px;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    background: #000;
-    z-index: 2;
-    text-shadow: 0 0 4px rgba(51,255,102,0.5);
-  }
-
-  #cursor {
-    display: inline-block;
-    background: #33ff66;
-    width: 8px;
-    height: 14px;
-    animation: blink 1s steps(1) infinite;
-    vertical-align: middle;
-  }
-
-  @keyframes blink {
-    0%, 50% { opacity: 1; }
-    50.01%, 100% { opacity: 0; }
-  }
-
-  canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
-    opacity: 0;
-    transition: opacity 3s ease-in;
-  }
-
-  #skip {
-    position: absolute;
-    bottom: 12px;
-    right: 16px;
-    z-index: 5;
-    color: #114422;
-    font-family: monospace;
-    font-size: 11px;
-    background: transparent;
-    border: 1px solid #114422;
-    padding: 4px 8px;
-    cursor: pointer;
-  }
-  #skip:hover { color: #33ff66; border-color: #33ff66; }
-
-  #reveal {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 3;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 1.2s ease-in;
-    font-family: "Courier New", Consolas, monospace;
-  }
-  #reveal.show { opacity: 1; }
-  #reveal h1 {
-    color: #33ff66;
-    font-size: 54px;
-    letter-spacing: 6px;
-    margin: 0 0 14px 0;
-    text-shadow: 0 0 14px rgba(51,255,102,0.85), 0 0 32px rgba(51,255,102,0.5);
-  }
-  #reveal p {
-    color: #8fffb0;
-    font-size: 16px;
-    margin: 0;
-    opacity: 0.85;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#060711;--panel:rgba(15,18,32,.72);--panel2:rgba(255,255,255,.045);--line:rgba(255,255,255,.09);--text:#f7f8ff;--muted:#858ba5;--a:#8c7cff;--b:#55d9ff;--g:#4fe1a0;--r:#ff6f91;--y:#ffd477;--shadow:0 25px 80px rgba(0,0,0,.28)}
+body.light{--bg:#eef0f8;--panel:rgba(255,255,255,.75);--panel2:rgba(20,20,40,.05);--line:rgba(20,25,50,.1);--text:#141728;--muted:#687087}
+html{scroll-behavior:smooth}body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}input,select,textarea{outline:0}
+#bg{position:fixed;inset:0;z-index:-5}.orb{position:fixed;border-radius:50%;filter:blur(70px);pointer-events:none;z-index:-3}.o1{width:400px;height:400px;background:#604cff;opacity:.13;top:-170px;left:-120px;animation:drift 14s infinite alternate}.o2{width:330px;height:330px;background:#24cfff;opacity:.08;right:-130px;bottom:8%;animation:drift 18s infinite alternate-reverse}@keyframes drift{to{transform:translate(80px,50px) scale(1.15)}}
+.app{width:min(1500px,94%);margin:auto;padding:20px 0 55px}.glass{background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);box-shadow:var(--shadow)}
+.top{height:66px;border-radius:20px;padding:10px 12px 10px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:14px;z-index:50}.brand{font:700 21px "Space Grotesk";letter-spacing:-1px}.brand i{font-style:normal;color:var(--a)}.nav{display:flex;gap:5px}.nav button{border:0;background:transparent;padding:10px 12px;border-radius:11px;color:var(--muted);font-size:12px}.nav button.active,.nav button:hover{color:var(--text);background:var(--panel2)}.actions{display:flex;gap:7px;align-items:center}.icon{width:38px;height:38px;border:1px solid var(--line);background:var(--panel2);border-radius:11px}.date{font-size:11px;color:var(--muted);padding:0 7px}
+.page{display:none;animation:page .45s ease}.page.active{display:block}@keyframes page{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.hero{margin-top:18px;border-radius:30px;padding:30px;min-height:245px;position:relative;overflow:hidden}.hero:before{content:"";position:absolute;width:500px;height:500px;right:-190px;top:-240px;border-radius:50%;background:radial-gradient(circle,rgba(140,124,255,.28),transparent 68%);animation:pulse 6s infinite alternate}@keyframes pulse{to{transform:scale(1.15);opacity:.7}}
+.eyebrow{font-size:10px;letter-spacing:3px;color:var(--a);text-transform:uppercase}.hero h1{font:700 clamp(34px,5vw,62px)/1 "Space Grotesk";letter-spacing:-3px;margin:13px 0 10px}.hero p{color:var(--muted);font-size:13px;max-width:680px;line-height:1.7}.quote{margin-top:18px;color:#b8bdd3;font-size:12px}.progress{margin-top:23px;max-width:680px}.ph{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin-bottom:7px}.track{height:9px;background:rgba(255,255,255,.06);border-radius:20px;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--b));transition:.7s;border-radius:20px;box-shadow:0 0 20px rgba(139,124,255,.35)}
+.dashboard{display:grid;grid-template-columns:1.3fr .7fr;gap:18px;margin-top:18px}.card{border-radius:24px;padding:21px}.title{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}.title h2{font:600 16px "Space Grotesk"}.muted{color:var(--muted);font-size:11px}.btn{border:1px solid var(--line);background:var(--panel2);padding:10px 13px;border-radius:11px;font-size:11px;transition:.2s}.btn:hover{transform:translateY(-2px);background:rgba(255,255,255,.08)}.primary{background:linear-gradient(135deg,var(--a),#6355df);border:0}.danger{color:var(--r)}.success{color:var(--g)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.stat{border:1px solid var(--line);background:var(--panel2);padding:15px;border-radius:17px}.stat strong{display:block;font:700 25px "Space Grotesk"}.stat span{color:var(--muted);font-size:10px;display:block;margin-top:4px}
+.taskbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.input,.select,.textarea{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:11px;padding:10px 12px}.grow{flex:1;min-width:170px}.tasks{max-height:470px;overflow:auto;padding-right:3px}.task{display:flex;align-items:center;gap:10px;padding:13px 4px;border-bottom:1px solid rgba(255,255,255,.055);animation:up .3s ease}.task:last-child{border-bottom:0}@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.check{width:22px;height:22px;border-radius:7px;border:1px solid var(--line);background:transparent;flex:none}.done .check{background:var(--g);border-color:var(--g)}.done .check:after{content:"✓";color:#06120d;display:block;text-align:center;font-weight:800}.taskbody{flex:1;min-width:0}.taskname{font-size:12px;font-weight:600}.done .taskname{text-decoration:line-through;color:#6d7288}.meta{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}.pill{font-size:9px;padding:4px 6px;border-radius:7px;background:var(--panel2);color:var(--muted)}.high{color:var(--r)}.medium{color:var(--y)}.low{color:var(--g)}.tasktime{font-size:10px;color:var(--muted)}.taskacts{display:flex;gap:3px}.mini{border:0;background:transparent;color:var(--muted);padding:5px}.mini:hover{color:var(--text)}
+.next{min-height:115px;display:flex;flex-direction:column;justify-content:center}.next h3{font-size:14px;margin:7px 0}.next .bigtime{font:700 30px "Space Grotesk";color:var(--a)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.day{padding:10px 5px;text-align:center;border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:9px}.day b{display:block;color:var(--text);font-size:15px;margin-bottom:5px}.today{border-color:var(--a);background:rgba(140,124,255,.1)}
+.ai{height:100%;display:flex;flex-direction:column}.aihead{display:flex;justify-content:space-between;align-items:center}.online{font-size:9px;color:var(--g)}.chat{height:390px;overflow:auto;display:flex;flex-direction:column;gap:9px;padding:4px 1px 12px}.bubble{max-width:90%;padding:10px 12px;border-radius:14px;font-size:11px;line-height:1.6}.bot{align-self:flex-start;background:rgba(140,124,255,.1);border:1px solid rgba(140,124,255,.12)}.user{align-self:flex-end;background:var(--panel2)}.chatform{display:flex;gap:7px;border-top:1px solid var(--line);padding-top:11px}
+.columns{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.goal{padding:15px;border:1px solid var(--line);background:var(--panel2);border-radius:16px;margin-bottom:8px}.goalhead{display:flex;justify-content:space-between}.goalbar{height:6px;background:rgba(255,255,255,.06);margin-top:10px;border-radius:10px;overflow:hidden}.goalbar i{display:block;height:100%;background:linear-gradient(90deg,var(--a),var(--b));border-radius:10px}
+.focus{display:grid;grid-template-columns:1fr .8fr;gap:18px}.timer{text-align:center;padding:35px 15px}.timer .time{font:700 clamp(55px,9vw,95px) "Space Grotesk";letter-spacing:-5px}.timer .mode{color:var(--a);font-size:11px;letter-spacing:2px;text-transform:uppercase}.timer-controls{display:flex;justify-content:center;gap:8px;margin-top:18px}.notes{min-height:280px;resize:vertical;width:100%;line-height:1.7}
+.analytics{display:grid;grid-template-columns:1fr 1fr;gap:18px}.chart{height:260px;display:flex;align-items:end;gap:10px;padding:20px 10px 10px}.barcol{flex:1;height:100%;display:flex;align-items:end;justify-content:center;position:relative}.barcol i{display:block;width:70%;max-width:38px;border-radius:8px 8px 3px 3px;background:linear-gradient(var(--a),var(--b));min-height:4px;transition:.5s}.barcol span{position:absolute;bottom:-18px;font-size:9px;color:var(--muted)}.ring{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;margin:25px auto;background:conic-gradient(var(--a) var(--p),rgba(255,255,255,.06) 0);position:relative}.ring:after{content:"";position:absolute;width:115px;height:115px;border-radius:50%;background:var(--bg)}.ring strong{z-index:1;font:700 30px "Space Grotesk"}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}.modal.open{display:flex}.modalbox{width:min(540px,100%);padding:24px;border-radius:25px}.form{display:grid;gap:11px}.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.label{display:block;font-size:10px;color:var(--muted);margin-bottom:5px}.toast{position:fixed;right:20px;bottom:20px;background:#15182a;border:1px solid var(--line);padding:12px 15px;border-radius:13px;font-size:11px;opacity:0;transform:translateY(12px);transition:.3s;z-index:200}.toast.show{opacity:1;transform:none}
+.empty{text-align:center;color:var(--muted);padding:30px;font-size:11px}.scroll{scrollbar-width:thin}
+@media(max-width:1050px){.dashboard,.focus,.analytics{grid-template-columns:1fr}.nav button:nth-child(n+4){display:none}}
+@media(max-width:700px){.app{width:92%}.top{padding-left:14px}.nav{display:none}.date{display:none}.hero{padding:23px}.stats{grid-template-columns:1fr 1fr}.columns{grid-template-columns:1fr}.week{gap:4px}.day{padding:8px 2px}.row{grid-template-columns:1fr}.taskacts .edit{display:none}}
 </style>
 </head>
 <body>
+<canvas id="bg"></canvas><div class="orb o1"></div><div class="orb o2"></div>
+<div class="app">
+<header class="top glass">
+ <div class="brand">LYRA<i>✦</i></div>
+ <nav class="nav">
+  <button class="active" data-page="home">Home</button><button data-page="planner">Planner</button><button data-page="focus">Focus</button><button data-page="goals">Goals</button><button data-page="analytics">Analytics</button><button data-page="profile">Profile</button>
+ </nav>
+ <div class="actions"><button class="btn" id="profileBtn">👤 My Profile</button><span class="date" id="date"></span><button class="icon" id="theme" title="Theme">☾</button><button class="icon" id="notify" title="Notifications">🔔</button></div>
+</header>
 
-<div id="terminal"></div>
-<canvas id="matrix"></canvas>
-<div id="reveal">
-  <h1>RELAX. IT'S JUST A PRANK.</h1>
-  <p>no system was harmed &mdash; nice reflexes though</p>
+<section class="page active" id="home">
+ <div class="hero glass">
+  <div class="eyebrow">Personal operating system</div><h1 id="greet">Good morning.</h1>
+  <p>Plan less. Execute more. LYRA keeps your missions, focus, goals and progress in one calm command center.</p>
+  <div class="quote" id="quote"></div>
+  <div class="progress"><div class="ph"><span>Today's completion</span><b id="pct">0%</b></div><div class="track"><div class="fill" id="fill"></div></div></div>
+ </div>
+ <div class="dashboard">
+  <div class="card glass">
+   <div class="title"><h2>Today's missions</h2><button class="btn primary" id="add">＋ New mission</button></div>
+   <div class="taskbar"><input class="input grow" id="search" placeholder="Search missions..."><select class="select" id="filter"><option value="all">All</option><option value="open">Open</option><option value="done">Done</option><option value="high">High priority</option></select></div>
+   <div class="tasks scroll" id="tasks"></div>
+  </div>
+  <div class="side">
+   <div class="card glass next"><span class="eyebrow">Next up</span><h3 id="next">Nothing scheduled</h3><span class="bigtime" id="nexttime">—</span></div>
+   <div class="card glass"><div class="title"><h2>Overview</h2></div><div class="stats"><div class="stat"><strong id="total">0</strong><span>missions</span></div><div class="stat"><strong id="complete">0</strong><span>completed</span></div><div class="stat"><strong id="streak">0</strong><span>streak</span></div><div class="stat"><strong id="focusmins">0</strong><span>focus min</span></div></div></div>
+  </div>
+ </div>
+ <div class="columns">
+  <div class="card glass"><div class="title"><h2>Week at a glance</h2><span class="muted">7 days</span></div><div class="week" id="week"></div></div>
+  <div class="card glass ai"><div class="aihead"><h2>✦ LYRA AI</h2><span class="online">● LOCAL ASSISTANT</span></div><div class="chat" id="chat"><div class="bubble bot">Hey. I'm Lyra. I can read your current plan. Ask <b>“What should I do now?”</b>, <b>“Am I on track?”</b> or <b>“Plan my day.”</b></div></div><form class="chatform" id="chatform"><input class="input grow" id="chatinput" placeholder="Talk to Lyra..."><button class="btn primary">Send</button></form></div>
+ </div>
+</section>
+
+
+<section class="page" id="profile">
+ <div class="hero glass">
+  <div class="eyebrow">Personal profile</div>
+  <h1>Let LYRA know you.</h1>
+  <p>Tell LYRA about your routine, goals, preferences and responsibilities. These details stay in this browser and are used to make the dashboard and local assistant more personal.</p>
+ </div>
+ <div class="card glass" style="margin-top:18px">
+  <div class="title"><h2>Your personal details</h2><span class="muted">saved locally</span></div>
+  <form class="form" id="profileForm">
+   <div class="row">
+    <div><label class="label">Your name</label><input class="input" style="width:100%" id="pname" placeholder="What should LYRA call you?"></div>
+    <div><label class="label">Age</label><input class="input" style="width:100%" id="page" type="number" min="1" max="120" placeholder="Age"></div>
+   </div>
+   <div class="row">
+    <div><label class="label">Main role</label><input class="input" style="width:100%" id="prole" placeholder="Student, developer, athlete..."></div>
+    <div><label class="label">Wake-up time</label><input class="input" style="width:100%" id="pwake" type="time"></div>
+   </div>
+   <div class="row">
+    <div><label class="label">Typical sleep time</label><input class="input" style="width:100%" id="psleep" type="time"></div>
+    <div><label class="label">Preferred focus length</label><select class="select" style="width:100%" id="pfocus"><option value="25">25 minutes</option><option value="40">40 minutes</option><option value="50">50 minutes</option><option value="60">60 minutes</option><option value="90">90 minutes</option></select></div>
+   </div>
+   <div><label class="label">Main goal right now</label><input class="input" style="width:100%" id="pgoal" placeholder="e.g. Become a better engineer"></div>
+   <div><label class="label">Long-term goals</label><textarea class="textarea" style="width:100%;min-height:90px" id="plong" placeholder="Career, education, fitness, money, projects, travel..."></textarea></div>
+   <div><label class="label">Important responsibilities</label><textarea class="textarea" style="width:100%;min-height:90px" id="presp" placeholder="Classes, work, family responsibilities, regular commitments..."></textarea></div>
+   <div><label class="label">Things you want LYRA to remind you about</label><textarea class="textarea" style="width:100%;min-height:90px" id="prem" placeholder="Study, exercise, projects, habits, deadlines..."></textarea></div>
+   <div><label class="label">About your ideal day</label><textarea class="textarea" style="width:100%;min-height:90px" id="pday" placeholder="Describe how you'd like your day to run."></textarea></div>
+   <div class="row">
+    <div><label class="label">Assistant style</label><select class="select" style="width:100%" id="pstyle"><option>Friendly coach</option><option>Strict accountability</option><option>Calm and supportive</option><option>Direct and concise</option></select></div>
+    <div><label class="label">Planning intensity</label><select class="select" style="width:100%" id="pintensity"><option>Balanced</option><option>Light</option><option>Highly structured</option></select></div>
+   </div>
+   <button class="btn primary">Save my profile ✦</button>
+  </form>
+ </div>
+</section>
+<section class="page" id="planner">
+ <div class="hero glass"><div class="eyebrow">Planner</div><h1>Design your day.</h1><p>Turn a blank day into a sequence of small wins. Recurring missions appear automatically.</p></div>
+ <div class="card glass" style="margin-top:18px"><div class="title"><h2>All missions</h2><button class="btn primary" id="add2">＋ Add mission</button></div><div class="taskbar"><input class="input grow" id="plans" placeholder="Filter by name..."></div><div class="tasks" id="alltasks"></div></div>
+</section>
+
+<section class="page" id="focus">
+ <div class="hero glass"><div class="eyebrow">Deep work</div><h1>Protect your attention.</h1><p>Use the focus timer to work in deliberate blocks. Your completed sessions feed your productivity stats.</p></div>
+ <div class="focus" style="margin-top:18px">
+  <div class="card glass timer"><div class="mode" id="mode">Focus session</div><div class="time" id="timer">25:00</div><div class="timer-controls"><button class="btn primary" id="start">Start</button><button class="btn" id="reset">Reset</button><button class="btn" id="skip">Skip</button></div><p class="muted" style="margin-top:20px">25 min focus · 5 min break · repeat</p></div>
+  <div class="card glass"><div class="title"><h2>Focus notes</h2><span class="muted">autosaved</span></div><textarea class="textarea notes" id="notes" placeholder="What are you working on? Dump distractions here and return to the task..."></textarea></div>
+ </div>
+</section>
+
+<section class="page" id="goals">
+ <div class="hero glass"><div class="eyebrow">Goals</div><h1>Build the bigger picture.</h1><p>Track the outcomes behind your everyday missions.</p></div>
+ <div class="card glass" style="margin-top:18px"><div class="title"><h2>Active goals</h2><button class="btn primary" id="goaladd">＋ New goal</button></div><div id="goals"></div></div>
+</section>
+
+<section class="page" id="analytics">
+ <div class="hero glass"><div class="eyebrow">Analytics</div><h1>See your momentum.</h1><p>Your activity, completion rate and focus history — without noisy dashboards.</p></div>
+ <div class="analytics" style="margin-top:18px">
+  <div class="card glass"><div class="title"><h2>Tasks completed</h2><span class="muted">last 7 days</span></div><div class="chart" id="chart"></div></div>
+  <div class="card glass"><div class="title"><h2>Consistency</h2></div><div class="ring" id="ring"><strong id="ringtext">0%</strong></div><p class="muted" style="text-align:center">completion across your stored missions</p></div>
+ </div>
+</section>
 </div>
-<button id="skip" onclick="skipToMatrix()">skip intro</button>
+
+<div class="modal" id="modal"><div class="modalbox glass"><div class="title"><h2 id="modaltitle">Create mission</h2><button class="mini" id="close">✕</button></div>
+<form class="form" id="form">
+ <div><label class="label">Mission</label><input class="input" style="width:100%" id="name" required placeholder="e.g. Study structural analysis"></div>
+ <div class="row"><div><label class="label">Date</label><input class="input" style="width:100%" id="day" type="date"></div><div><label class="label">Time</label><input class="input" style="width:100%" id="time" type="time"></div></div>
+ <div class="row"><div><label class="label">Priority</label><select class="select" style="width:100%" id="priority"><option>High</option><option selected>Medium</option><option>Low</option></select></div><div><label class="label">Repeat</label><select class="select" style="width:100%" id="repeat"><option value="none">Only this date</option><option value="daily">Every day</option></select></div></div>
+ <div><label class="label">Tag</label><input class="input" style="width:100%" id="tag" placeholder="Study, gym, personal..."></div>
+ <button class="btn primary">Save mission</button>
+</form></div></div>
+<div class="toast" id="toast"></div>
 
 <script>
-const lines = [
-  "root@core-relay:~# initiating secure session...",
-  "connecting to 10.42.117.8:8022 ... OK",
-  "authenticating handshake [RSA-4096] ... verified",
-  "",
-  "loading kernel modules:",
-  "  [ok] net_filter",
-  "  [ok] io_scheduler",
-  "  [ok] crypto_engine",
-  "  [ok] proc_monitor",
-  "",
-  "mounting remote filesystem /mnt/remote_fs ... done",
-  "scanning open ports on subnet 10.42.117.0/24 ...",
-  "  10.42.117.3   22/tcp   open   ssh",
-  "  10.42.117.9   443/tcp  open   https",
-  "  10.42.117.14  3306/tcp open   mysql",
-  "",
-  "bypassing firewall ruleset ... 3 rules disabled",
-  "injecting payload into buffer 0x7F3A2C ... done",
-  "escalating privileges ... root access granted",
-  "",
-  "decrypting archive vault_002.enc ...",
-  "  [##########----------] 48%",
-  "  [####################] 100%",
-  "",
-  "access granted.",
-  "launching matrix protocol",
-];
+const K="LYRA_MAX_V3", G="LYRA_GOALS_V1", N="LYRA_NOTES_V1";
+let data=JSON.parse(localStorage.getItem(K)||"[]"), goals=JSON.parse(localStorage.getItem(G)||"[]"), editing=null;
+const $=x=>document.getElementById(x), today=()=>new Date().toISOString().slice(0,10);
+const quotes=["Small progress compounds.","Protect your attention. It is your real currency.","Do the important thing before the easy thing.","Momentum beats perfection.","Your future self is built by today's actions.","One focused hour can change a day."];
+function esc(s=""){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function save(){localStorage.setItem(K,JSON.stringify(data));renderAll()}
+function toast(s){$("toast").textContent=s;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2400)}
 
-const term = document.getElementById('terminal');
-let lineIndex = 0;
-let charIndex = 0;
-let buffer = "";
-
-function typeNextChar() {
-  if (lineIndex >= lines.length) {
-    setTimeout(startMatrix, 700);
-    return;
-  }
-  const current = lines[lineIndex];
-  if (charIndex < current.length) {
-    buffer += current[charIndex];
-    charIndex++;
-    term.innerHTML = buffer + '<span id="cursor"></span>';
-    setTimeout(typeNextChar, 12 + Math.random() * 18);
-  } else {
-    buffer += "\n";
-    lineIndex++;
-    charIndex = 0;
-    term.innerHTML = buffer + '<span id="cursor"></span>';
-    const pause = current === "" ? 80 : 90 + Math.random() * 160;
-    setTimeout(typeNextChar, pause);
-  }
+const PKEY="LYRA_PROFILE_V1";
+let profile=JSON.parse(localStorage.getItem(PKEY)||"{}");
+function loadProfile(){
+ $("pname").value=profile.name||"";$("page").value=profile.age||"";$("prole").value=profile.role||"";
+ $("pwake").value=profile.wake||"";$("psleep").value=profile.sleep||"";$("pfocus").value=profile.focus||"25";
+ $("pgoal").value=profile.goal||"";$("plong").value=profile.longGoals||"";$("presp").value=profile.responsibilities||"";
+ $("prem").value=profile.reminders||"";$("pday").value=profile.idealDay||"";$("pstyle").value=profile.style||"Friendly coach";$("pintensity").value=profile.intensity||"Balanced";
 }
-
-let matrixStarted = false;
-function skipToMatrix() {
-  if (matrixStarted) return;
-  startMatrix();
+function saveProfile(e){
+ e.preventDefault();
+ profile={name:$("pname").value.trim(),age:$("page").value,role:$("prole").value.trim(),wake:$("pwake").value,sleep:$("psleep").value,focus:$("pfocus").value,goal:$("pgoal").value.trim(),longGoals:$("plong").value.trim(),responsibilities:$("presp").value.trim(),reminders:$("prem").value.trim(),idealDay:$("pday").value.trim(),style:$("pstyle").value,intensity:$("pintensity").value};
+ localStorage.setItem(PKEY,JSON.stringify(profile));toast("Profile saved. LYRA knows you better now. ✦");updatePersonalUI();
 }
-
-function startMatrix() {
-  if (matrixStarted) return;
-  matrixStarted = true;
-  document.getElementById('skip').style.display = 'none';
-
-  const canvas = document.getElementById('matrix');
-  canvas.style.opacity = '1';
-  term.style.transition = 'opacity 1.5s ease-out';
-  term.style.opacity = '0';
-
-  const ctx = canvas.getContext('2d');
-  function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
-  const chars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789";
-  const fontSize = 16;
-  let columns = Math.floor(canvas.width / fontSize);
-  let drops = new Array(columns).fill(1);
-
-  function draw() {
-    ctx.fillStyle = "rgba(0,0,0,0.05)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "#33ff66";
-    ctx.font = fontSize + "px monospace";
-
-    for (let i = 0; i < drops.length; i++) {
-      const text = chars[Math.floor(Math.random() * chars.length)];
-      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-        drops[i] = 0;
-      }
-      drops[i]++;
-    }
-  }
-
-  const rainInterval = setInterval(draw, 45);
-
-  window.addEventListener('resize', () => {
-    columns = Math.floor(canvas.width / fontSize);
-    drops = new Array(columns).fill(1);
-  });
-
-  // let the rain run for a while, then land the reveal
-  setTimeout(() => {
-    const reveal = document.getElementById('reveal');
-    reveal.classList.add('show');
-    canvas.style.transition = 'opacity 2.5s ease-out';
-    canvas.style.opacity = '0.15';
-  }, 8000);
+function updatePersonalUI(){
+ let n=profile.name||"";
+ if(n)$("greet").textContent="Welcome back, "+n+".";
 }
+$("profileForm").onsubmit=saveProfile;
+$("profileBtn").onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$("profile").classList.add("active");loadProfile()};
 
-setTimeout(typeNextChar, 400);
+function seed(){if(data.length===0){data=[{id:crypto.randomUUID(),name:"Plan the day",date:today(),time:"07:00",priority:"High",repeat:"daily",tag:"Planning",done:false},{id:crypto.randomUUID(),name:"Deep work session",date:today(),time:"09:00",priority:"High",repeat:"daily",tag:"Study",done:false},{id:crypto.randomUUID(),name:"Exercise / movement",date:today(),time:"17:00",priority:"Medium",repeat:"daily",tag:"Health",done:false}];localStorage.setItem(K,JSON.stringify(data))}}
+function recurring(){let d=today();data.filter(x=>x.repeat==="daily").forEach(x=>{if(!data.some(y=>y.date===d&&y.name===x.name&&y.id!==x.id))data.push({...x,id:crypto.randomUUID(),date:d,done:false,reminded:false})});localStorage.setItem(K,JSON.stringify(data))}
+function renderTasks(){
+ let q=($("search")?.value||"").toLowerCase(), f=$("filter")?.value||"all";
+ let a=data.filter(x=>x.date===today()&&(x.name+" "+(x.tag||"")).toLowerCase().includes(q));
+ if(f==="open")a=a.filter(x=>!x.done);if(f==="done")a=a.filter(x=>x.done);if(f==="high")a=a.filter(x=>x.priority==="High");
+ a.sort((x,y)=>(x.time||"99:99").localeCompare(y.time||"99:99"));
+ $("tasks").innerHTML=a.length?a.map(taskHTML).join(""):'<div class="empty">No missions match this view.</div>';
+}
+function taskHTML(x){return `<div class="task ${x.done?"done":""}"><button class="check" onclick="toggle('${x.id}')"></button><div class="taskbody"><div class="taskname">${esc(x.name)}</div><div class="meta">${x.time?`<span class="pill">⏰ ${x.time}</span>`:""}<span class="pill ${x.priority.toLowerCase()}">${x.priority}</span>${x.tag?`<span class="pill">${esc(x.tag)}</span>`:""}${x.repeat==="daily"?'<span class="pill">↻ daily</span>':""}</div></div><div class="taskacts"><button class="mini edit" onclick="editTask('${x.id}')">✎</button><button class="mini danger" onclick="removeTask('${x.id}')">✕</button></div></div>`}
+function toggle(id){let x=data.find(a=>a.id===id);if(x){x.done=!x.done;if(x.done){toast("Mission complete. ✦");}save()}}
+function removeTask(id){data=data.filter(x=>x.id!==id);save();toast("Mission removed")}
+function editTask(id){let x=data.find(a=>a.id===id);if(!x)return;editing=id;$("modaltitle").textContent="Edit mission";$("name").value=x.name;$("day").value=x.date;$("time").value=x.time||"";$("priority").value=x.priority;$("repeat").value=x.repeat;$("tag").value=x.tag||"";$("modal").classList.add("open")}
+function openModal(){editing=null;$("modaltitle").textContent="Create mission";$("form").reset();$("day").value=today();$("modal").classList.add("open");$("name").focus()}
+function closeModal(){$("modal").classList.remove("open")}
+function renderStats(){let a=data.filter(x=>x.date===today()),done=a.filter(x=>x.done).length,p=a.length?Math.round(done/a.length*100):0;$("total").textContent=a.length;$("complete").textContent=done;$("pct").textContent=p+"%";$("fill").style.width=p+"%";$("focusmins").textContent=Number(localStorage.getItem("LYRA_FOCUS_MIN")||0);$("streak").textContent=streak();let next=a.filter(x=>!x.done&&x.time).sort((x,y)=>x.time.localeCompare(y.time))[0];$("next").textContent=next?next.name:"Nothing scheduled";$("nexttime").textContent=next?next.time:"—"}
+function streak(){let s=0,d=new Date();while(s<365){let ds=d.toISOString().slice(0,10),a=data.filter(x=>x.date===ds);if(a.length&&a.every(x=>x.done)){s++;d.setDate(d.getDate()-1)}else break}return s}
+function renderWeek(){let now=new Date(),start=new Date(now);start.setDate(now.getDate()-(now.getDay()||7)+1);$("week").innerHTML=Array.from({length:7},(_,i)=>{let d=new Date(start);d.setDate(start.getDate()+i);let ds=d.toISOString().slice(0,10),a=data.filter(x=>x.date===ds),c=a.filter(x=>x.done).length;return `<div class="day ${ds===today()?"today":""}"><b>${d.getDate()}</b>${d.toLocaleDateString(undefined,{weekday:"short"})}<br><span style="color:${c?"var(--g)":"var(--muted)"}">${c}/${a.length}</span></div>`}).join("")}
+function renderAllTasks(){let q=($("plans")?.value||"").toLowerCase(),a=data.filter(x=>(x.name+" "+(x.tag||"")).toLowerCase().includes(q)).sort((x,y)=>(x.date+x.time).localeCompare(y.date+y.time));$("alltasks").innerHTML=a.length?a.map(taskHTML).join(""):'<div class="empty">No missions yet.</div>'}
+function renderGoals(){if(!goals.length){$("goals").innerHTML='<div class="empty">Create a goal and connect everyday missions to something bigger.</div>';return}$("goals").innerHTML=goals.map((g,i)=>`<div class="goal"><div class="goalhead"><b style="font-size:12px">${esc(g.name)}</b><span class="muted">${g.progress}% <button class="mini" onclick="goalUp(${i})">＋</button><button class="mini danger" onclick="goalDel(${i})">✕</button></span></div><div class="goalbar"><i style="width:${g.progress}%"></i></div></div>`).join("")}
+function goalUp(i){goals[i].progress=Math.min(100,goals[i].progress+10);localStorage.setItem(G,JSON.stringify(goals));renderGoals();toast("Goal moved forward")}
+function goalDel(i){goals.splice(i,1);localStorage.setItem(G,JSON.stringify(goals));renderGoals()}
+function analytics(){let now=new Date(),vals=[];for(let i=6;i>=0;i--){let d=new Date(now);d.setDate(now.getDate()-i);let ds=d.toISOString().slice(0,10);vals.push({n:d.toLocaleDateString(undefined,{weekday:"short"}),v:data.filter(x=>x.date===ds&&x.done).length})}let max=Math.max(1,...vals.map(x=>x.v));$("chart").innerHTML=vals.map(x=>`<div class="barcol"><i style="height:${Math.max(4,x.v/max*88)}%"></i><span>${x.n}</span></div>`).join("");let all=data.length,done=data.filter(x=>x.done).length,p=all?Math.round(done/all*100):0;$("ring").style.setProperty("--p",p+"%");$("ringtext").textContent=p+"%"}
+function clock(){let d=new Date(),h=d.getHours();$("date").textContent=d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})+" · "+d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});$("greet").textContent=h<12?"Good morning.":h<18?"Good afternoon.":"Good evening."}
+function ai(text){
+ let l=text.toLowerCase(),a=data.filter(x=>x.date===today()),o=a.filter(x=>!x.done),high=o.filter(x=>x.priority==="High"),next=o.filter(x=>x.time).sort((x,y)=>x.time.localeCompare(y.time))[0];
+ let name=profile.name?esc(profile.name):"there",goal=profile.goal?esc(profile.goal):"your main goal";
+ if(l.includes("who am i")||l.includes("my profile")||l.includes("know me")) return `You're <b>${name}</b>${profile.role?`, a ${esc(profile.role)}`:""}. Your current main goal is <b>${goal}</b>. ${profile.style?`My style is set to <b>${esc(profile.style)}</b>.`:""}`;
+ if(l.includes("what should")||l.includes("next")||l.includes("now"))return next?`${profile.name?esc(profile.name)+", ":""}start with <b>${esc(next.name)}</b>${next.time?` at <b>${next.time}</b>`:""}. It is ${next.priority.toLowerCase()} priority. One mission at a time.`:"You're clear. Use the Focus page for a deep-work block or create a new mission.";
+ if(l.includes("plan")||l.includes("day"))return high.length?`For you, I'd start with <b>${esc(high[0].name)}</b>. ${profile.goal?`Keep your main goal — <b>${esc(profile.goal)}</b> — in mind.`:""} Then tackle ${high.length>1?`<b>${esc(high[1].name)}</b>`:"your next scheduled mission"}.`:"You have no high-priority missions. Create one meaningful mission connected to your current goal.";
+ if(l.includes("goal"))return profile.goal?`Your current main goal is <b>${esc(profile.goal)}</b>. ${profile.longGoals?`Your longer-term direction: <b>${esc(profile.longGoals)}</b>.`:""}`:"You haven't set a main goal yet. Open <b>Profile</b> and add one.";
+ if(l.includes("track")||l.includes("progress")){let p=a.length?Math.round(a.filter(x=>x.done).length/a.length*100):0;return `You're <b>${p}%</b> through today's missions, with <b>${o.length}</b> remaining. ${p>=70?"You're in a strong position.":"Focus on the next important mission."}`}
+ if(l.includes("how many")||l.includes("task"))return `Today: <b>${a.length}</b> missions. Completed: <b>${a.length-o.length}</b>. Remaining: <b>${o.length}</b>.`;
+ if(l.includes("high")||l.includes("priority"))return high.length?`High priority: <b>${high.map(x=>esc(x.name)).join("</b>, <b>")}</b>.`:"No open high-priority missions.";
+ if(l.includes("motivat"))return `${profile.style==="Strict accountability"?"No excuses:":"Start small:"} set a ${esc(profile.focus||25)}-minute focus block and begin. Momentum comes after action.`;
+ return "Try: “What should I do now?”, “Plan my day”, “Am I on track?”, “What is my goal?”, “Who am I?”, or “How many tasks?”";
+}
+function chatSend(e){e.preventDefault();let inp=$("chatinput"),t=inp.value.trim();if(!t)return;$("chat").insertAdjacentHTML("beforeend",`<div class="bubble user">${esc(t)}</div>`);inp.value="";setTimeout(()=>{$("chat").insertAdjacentHTML("beforeend",`<div class="bubble bot">${ai(t)}</div>`);$("chat").scrollTop=$("chat").scrollHeight},250)}
+let timerSec=25*60,running=false,interval=null,focusCount=Number(localStorage.getItem("LYRA_FOCUS_MIN")||0);
+function timerRender(){$("timer").textContent=String(Math.floor(timerSec/60)).padStart(2,"0")+":"+String(timerSec%60).padStart(2,"0")}
+function startTimer(){if(running)return;running=true;$("start").textContent="Pause";interval=setInterval(()=>{timerSec--;timerRender();if(timerSec<=0){clearInterval(interval);running=false;$("start").textContent="Start";focusCount+=25;localStorage.setItem("LYRA_FOCUS_MIN",focusCount);timerSec=$("mode").textContent==="Break"?25*60:5*60;$("mode").textContent=$("mode").textContent==="Break"?"Focus session":"Break";toast("Focus block complete. ✦");renderStats()}},1000)}
+function pauseTimer(){clearInterval(interval);running=false;$("start").textContent="Start"}
+$("start").onclick=()=>running?pauseTimer():startTimer();$("reset").onclick=()=>{pauseTimer();timerSec=$("mode").textContent==="Break"?5*60:25*60;timerRender()};$("skip").onclick=()=>{pauseTimer();$("mode").textContent=$("mode").textContent==="Break"?"Focus session":"Break";timerSec=$("mode").textContent==="Break"?5*60:25*60;timerRender()}
+$("notes").value=localStorage.getItem(N)||"";$("notes").oninput=e=>localStorage.setItem(N,e.target.value);
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));$(b.dataset.page).classList.add("active");if(b.dataset.page==="analytics")analytics()});
+$("add").onclick=openModal;$("add2").onclick=openModal;$("close").onclick=closeModal;$("modal").onclick=e=>{if(e.target.id==="modal")closeModal()};
+$("form").onsubmit=e=>{e.preventDefault();let obj={id:editing||crypto.randomUUID(),name:$("name").value.trim(),date:$("day").value,time:$("time").value,priority:$("priority").value,repeat:$("repeat").value,tag:$("tag").value.trim(),done:editing?(data.find(x=>x.id===editing)?.done||false):false};if(editing){let i=data.findIndex(x=>x.id===editing);data[i]=obj}else data.push(obj);closeModal();save();toast(editing?"Mission updated":"Mission created");editing=null}
+$("search").oninput=renderTasks;$("filter").onchange=renderTasks;$("plans").oninput=renderAllTasks;$("chatform").onsubmit=chatSend;
+$("goaladd").onclick=()=>{let n=prompt("Goal name");if(n){goals.push({name:n,progress:0});localStorage.setItem(G,JSON.stringify(goals));renderGoals();toast("Goal created")}}
+$("theme").onclick=()=>{document.body.classList.toggle("light");localStorage.setItem("LYRA_THEME",document.body.classList.contains("light")?"light":"dark")};
+if(localStorage.getItem("LYRA_THEME")==="light")document.body.classList.add("light");
+$("notify").onclick=async()=>{if(!("Notification"in window)){toast("Notifications aren't supported here");return}let p=await Notification.requestPermission();toast(p==="granted"?"Reminders enabled 🔔":"Notifications not enabled")};
+function reminders(){let now=new Date(),tm=now.toTimeString().slice(0,5);data.filter(x=>x.date===today()&&!x.done&&x.time===tm&&!x.reminded).forEach(x=>{x.reminded=true;localStorage.setItem(K,JSON.stringify(data));toast("Reminder: "+x.name);if(Notification.permission==="granted")new Notification("LYRA reminder",{body:x.name})})}
+seed();recurring();loadProfile();updatePersonalUI();$("quote").textContent="“"+quotes[new Date().getDate()%quotes.length]+"”";clock();setInterval(clock,1000);setInterval(reminders,30000);renderTasks();renderStats();renderWeek();renderAllTasks();renderGoals();analytics();timerRender();
+
+const c=$("bg"),ctx=c.getContext("2d");let pts=[];function resize(){c.width=innerWidth;c.height=innerHeight;pts=Array.from({length:110},()=>({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.4+.2,v:Math.random()*.3+.04}))}function anim(){ctx.clearRect(0,0,c.width,c.height);pts.forEach(p=>{p.y+=p.v;if(p.y>c.height)p.y=0;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fillStyle="rgba(255,255,255,.55)";ctx.fill()});requestAnimationFrame(anim)}addEventListener("resize",resize);resize();anim();
 </script>
-
 </body>
 </html>
